@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+      #flashcard_canvas {
+        background-color: palegreen;
+      }
+      @font-face {
+        font-family: 'AR PL KaitiM GB';
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Chinese Flashcards</h1>
+    <canvas id='flashcard_canvas' width='600' height='300'>
+      Canvas not supported
+    </canvas>
+    <div id='card_controls'>
+      <button id='prev_card'>Previous Card</button>
+      <button id='flip_card'>Flip Card</button>
+      <button id='next_card'>Next Card</button>
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/0.9.10/backbone-min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+    <script>
+      var Flashcard = Backbone.Model.extend({
+        initialize: function(){
+          this.on('change', function(){
+          });
+        },
+        display_string: function(){
+          return this.get('zhongwen') + ' (' + this.get('yingyu') + ')';
+        }
+      });
+      
+      var Flashcards = Backbone.Collection.extend({
+        model: Flashcard
+      });
+
+      var flashcards = new Flashcards;
+
+      flashcards.add([{zhongwen: '中文', yingyu: 'Chinese'}]);
+      flashcards.add([{zhongwen: '美国', yingyu: 'America'}]);
+      flashcards.add([{zhongwen: '老虎', yingyu: 'tiger'}]);
+      flashcards.add([{zhongwen: '啤酒', yingyu: 'beer'}]);
+
+      var FlashcardView = Backbone.View.extend({
+        initialize: function() {
+          this.current_card = 0;
+          this.showZhongwen(this.current_card);
+          _.bindAll(this, 'showCard', 'lastCard', 'nextCard', 'flip')
+          this.listenTo(this.options.controls, "flipRequested", this.flip);
+          this.listenTo(this.options.controls, "prevCardRequested", this.prevCard);
+          this.listenTo(this.options.controls, "nextCardRequested", this.nextCard);
+        },
+        showCard: function(id_num) {
+          this.current_card = id_num;
+          this.showZhongwen(this.current_card);
+        },
+        lastCard: function() {
+          return this.collection.length - 1;
+        },
+        prevCard: function() {
+          if (this.current_card > 0) {
+            this.current_card -= 1;
+            this.showZhongwen(this.current_card);
+          }
+        },
+        nextCard: function() {
+          if (this.current_card < this.lastCard()) {
+            this.current_card += 1;
+            this.showZhongwen(this.current_card);
+          }
+        },
+        flip: function() {
+          if (this.currentlyShowing == 'zhongwen') {
+            this.showYingyu(this.current_card); 
+          } else {
+            this.showZhongwen(this.current_card); 
+          }
+        },
+        showZhongwen: function(id_num) {
+          this.currentlyShowing = 'zhongwen';
+          context.clearRect(0,0,600,300);
+          context.fillText(this.collection.at(id_num).get('zhongwen'), fc_canvas.width/2 - 150, fc_canvas.height/2);
+        },
+        showYingyu: function(id_num) {
+          this.currentlyShowing = 'yingyu';
+          context.clearRect(0,0,600,300);
+          context.fillText(this.collection.at(id_num).get('yingyu'), fc_canvas.width/2 - 150, fc_canvas.height/2);
+        }
+      });
+
+      var fc_canvas = document.getElementById('flashcard_canvas');
+      var context = fc_canvas.getContext('2d');
+      context.font = '50pt "AR PL KaitiM GB" "AR PL UMing" 黑体 SimHei 华文黑体 STHeiti';
+
+      var CardControlsView = Backbone.View.extend({
+        el: $('#card_controls'),
+        initialize: function() {
+          _.bindAll(this, 'handleFlipCard', 'handlePrevCard', 'handleNextCard');
+        },
+        events: {
+          'click #flip_card': 'handleFlipCard',
+          'click #prev_card': 'handlePrevCard',
+          'click #next_card': 'handleNextCard'
+        },
+        handlePrevCard: function() {
+          this.trigger("prevCardRequested");
+        },
+        handleNextCard: function() {
+          this.trigger("nextCardRequested");
+        },
+        handleFlipCard: function() {
+          this.trigger("flipRequested");
+        }
+      });
+
+      var cardControlsView = new CardControlsView();
+
+      var flashcard_view = new FlashcardView({
+        collection: flashcards,
+        controls: cardControlsView
+      });
+      
+    </script>
+  </body>
+</html>
