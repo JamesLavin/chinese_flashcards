@@ -14,13 +14,14 @@
 
   <body>
     <h1>Chinese Flashcards</h1>
-    <canvas id='flashcard_canvas' width='600' height='300'>
+    <canvas id='flashcard_canvas' width='900' height='300'>
       Canvas not supported
     </canvas>
     <div id='card_controls'>
       <button id='prev_card'>Previous Card</button>
       <button id='flip_card'>Flip Card</button>
       <button id='next_card'>Next Card</button>
+      <button id='show_pinyin'>Pinyin</button>
     </div>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
@@ -43,71 +44,102 @@
 
       var flashcards = new Flashcards;
 
-      flashcards.add([{zhongwen: '中文', yingyu: 'Chinese'}]);
-      flashcards.add([{zhongwen: '美国', yingyu: 'America'}]);
-      flashcards.add([{zhongwen: '老虎', yingyu: 'tiger'}]);
-      flashcards.add([{zhongwen: '啤酒', yingyu: 'beer'}]);
+      flashcards.add([{zhongwen: '中文', yingyu: 'Chinese', pinyin: 'zhong1 wen2'}]);
+      flashcards.add([{zhongwen: '美国', yingyu: 'America', pinyin: 'mei3 guo2'}]);
+      flashcards.add([{zhongwen: '老虎', yingyu: 'tiger', pinyin: 'lao3 hu3'}]);
+      flashcards.add([{zhongwen: '啤酒', yingyu: 'beer', pinyin: 'pi2 jiu3'}]);
+      flashcards.add([{zhongwen: '吃饭', yingyu: 'to eat', pinyin: 'chi1 fan4'}]);
+      flashcards.add([{zhongwen: '小孩', yingyu: 'kid/child', pinyin: 'xiao3 hai2'}]);
+      flashcards.add([{zhongwen: '读书', yingyu: 'to read (a book)', pinyin: 'du2 shu1'}]);
+      flashcards.add([{zhongwen: '妈妈', yingyu: 'mom, mommy, mother', pinyin: 'ma1 ma'}]);
+      flashcards.add([{zhongwen: '爸爸', yingyu: 'dad, daddy, father', pinyin: 'ba4 ba'}]);
+      flashcards.add([{zhongwen: '姐姐', yingyu: '(older) sister', pinyin: 'jie3 jie'}]);
+      flashcards.add([{zhongwen: '哥哥', yingyu: '(older) brother', pinyin: 'ge1 ge'}]);
+      flashcards.add([{zhongwen: '弟弟', yingyu: '(younger) brother', pinyin: 'di4 di'}]);
+      flashcards.add([{zhongwen: '妹妹', yingyu: '(younger) sister', pinyin: 'mei4 mei'}]);
 
       var FlashcardView = Backbone.View.extend({
         initialize: function() {
           this.current_card = 0;
-          this.showZhongwen(this.current_card);
+          this.show('zhongwen', this.current_card);
           _.bindAll(this, 'showCard', 'lastCard', 'nextCard', 'flip')
           this.listenTo(this.options.controls, "flipRequested", this.flip);
           this.listenTo(this.options.controls, "prevCardRequested", this.prevCard);
           this.listenTo(this.options.controls, "nextCardRequested", this.nextCard);
+          this.listenTo(this.options.controls, "pinyinRequested", this.showPinyin);
         },
         showCard: function(id_num) {
-          this.current_card = id_num;
-          this.showZhongwen(this.current_card);
+          if (id_num) { this.current_card = id_num };
+          if (this.current_card) { this.show('zhongwen', this.current_card) };
         },
         lastCard: function() {
           return this.collection.length - 1;
         },
+        showPinyin: function(id_num) {
+          if (id_num) { this.current_card = id_num };
+          if (this.current_card) { this.show('pinyin'), this.current_card };
+        },
         prevCard: function() {
           if (this.current_card > 0) {
             this.current_card -= 1;
-            this.showZhongwen(this.current_card);
+          } else {
+            this.current_card = this.lastCard();
           }
+          this.show('zhongwen', this.current_card);
         },
         nextCard: function() {
           if (this.current_card < this.lastCard()) {
             this.current_card += 1;
-            this.showZhongwen(this.current_card);
+          } else {
+            this.current_card = 0;
           }
+          this.show('zhongwen', this.current_card);
         },
         flip: function() {
           if (this.currentlyShowing == 'zhongwen') {
-            this.showYingyu(this.current_card); 
+            this.show('yingyu', this.current_card); 
           } else {
-            this.showZhongwen(this.current_card); 
+            this.show('zhongwen', this.current_card); 
           }
         },
-        showZhongwen: function(id_num) {
-          this.currentlyShowing = 'zhongwen';
-          context.clearRect(0,0,600,300);
-          context.fillText(this.collection.at(id_num).get('zhongwen'), fc_canvas.width/2 - 150, fc_canvas.height/2);
-        },
-        showYingyu: function(id_num) {
-          this.currentlyShowing = 'yingyu';
-          context.clearRect(0,0,600,300);
-          context.fillText(this.collection.at(id_num).get('yingyu'), fc_canvas.width/2 - 150, fc_canvas.height/2);
-        }
+        show: function(attrib, id_num) {
+          if (!id_num) { var id_num = this.current_card; }
+          this.currentlyShowing = attrib;
+          context.clearRect(0,0,screen.width,screen.height);
+          var display_text = this.collection.at(id_num).get(attrib);
+          context.fillText(display_text, fc_canvas.width/2, fc_canvas.height/2);
+        } //,
+        //showYingyu: function(id_num) {
+        //  if (!id_num) { var id_num = this.current_card; }
+        //  this.currentlyShowing = 'yingyu';
+        //  context.clearRect(0,0,screen.width,screen.height);
+        //  context.fillText(this.collection.at(id_num).get('yingyu'), fc_canvas.width/2, fc_canvas.height/2);
+        //},
+        //showPinyin: function(id_num) {
+        //  show('pinyin');
+        //  if (!id_num) { var id_num = this.current_card; }
+        //  this.currentlyShowing = 'pinyin';
+        //  context.clearRect(0,0,screen.width,screen.height);
+        //  context.fillText(this.collection.at(id_num).get('pinyin'), fc_canvas.width/2, fc_canvas.height/2);
+        //}
       });
 
       var fc_canvas = document.getElementById('flashcard_canvas');
       var context = fc_canvas.getContext('2d');
+      context.textAlign = 'center';
+      //context.textBaseline = 'middle';
       context.font = '50pt "AR PL KaitiM GB" "AR PL UMing" 黑体 SimHei 华文黑体 STHeiti';
 
       var CardControlsView = Backbone.View.extend({
         el: $('#card_controls'),
         initialize: function() {
-          _.bindAll(this, 'handleFlipCard', 'handlePrevCard', 'handleNextCard');
+          _.bindAll(this, 'handleFlipCard', 'handlePrevCard', 'handleNextCard', 'handleShowPinyin');
         },
         events: {
           'click #flip_card': 'handleFlipCard',
           'click #prev_card': 'handlePrevCard',
-          'click #next_card': 'handleNextCard'
+          'click #next_card': 'handleNextCard',
+          'click #show_pinyin': 'handleShowPinyin'
         },
         handlePrevCard: function() {
           this.trigger("prevCardRequested");
@@ -117,6 +149,9 @@
         },
         handleFlipCard: function() {
           this.trigger("flipRequested");
+        },
+        handleShowPinyin: function() {
+          this.trigger("pinyinRequested");
         }
       });
 
