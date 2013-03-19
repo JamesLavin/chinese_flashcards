@@ -15,9 +15,9 @@
       Canvas not supported
     </canvas>
     <div id='card_controls'>
-      <button id='prev_card'>Previous Card</button>
-      <button id='flip_card'>Flip Card</button>
-      <button id='next_card'>Next Card</button>
+      <button id='prev_card'><<</button>
+      <button id='flip_card'>英语</button>
+      <button id='next_card'>>></button>
       <button id='show_pinyin'>Pinyin</button>
     </div>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -100,8 +100,10 @@
         },
         flip: function() {
           if (this.currentlyShowing == 'zhongwen') {
+            $('#flip_card').text('中文');
             this.show('yingyu', this.current_card); 
           } else {
+            $('#flip_card').text('英语');
             this.show('zhongwen', this.current_card); 
           }
         },
