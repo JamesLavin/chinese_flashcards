@@ -7,6 +7,7 @@
         background-color: palegreen;
       }
     </style>
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js'></script>
   </head>
 
   <body>
@@ -25,6 +26,8 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/0.9.10/backbone-min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
     <script>
+      if (!Modernizr.canvastext) { alert("Your browser does not seem to support canvas text. You'll need to upgrade before running this program."); };
+
       var Flashcard = Backbone.Model.extend({
         initialize: function(){
           this.on('change', function(){
