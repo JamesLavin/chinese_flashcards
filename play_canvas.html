@@ -6,9 +6,6 @@
       #flashcard_canvas {
         background-color: palegreen;
       }
-      @font-face {
-        font-family: 'AR PL KaitiM GB';
-      }
     </style>
   </head>
 
@@ -108,27 +105,18 @@
           context.clearRect(0,0,screen.width,screen.height);
           var display_text = this.collection.at(id_num).get(attrib);
           context.fillText(display_text, fc_canvas.width/2, fc_canvas.height/2);
-        } //,
-        //showYingyu: function(id_num) {
-        //  if (!id_num) { var id_num = this.current_card; }
-        //  this.currentlyShowing = 'yingyu';
-        //  context.clearRect(0,0,screen.width,screen.height);
-        //  context.fillText(this.collection.at(id_num).get('yingyu'), fc_canvas.width/2, fc_canvas.height/2);
-        //},
-        //showPinyin: function(id_num) {
-        //  show('pinyin');
-        //  if (!id_num) { var id_num = this.current_card; }
-        //  this.currentlyShowing = 'pinyin';
-        //  context.clearRect(0,0,screen.width,screen.height);
-        //  context.fillText(this.collection.at(id_num).get('pinyin'), fc_canvas.width/2, fc_canvas.height/2);
-        //}
+        }
       });
 
+      var opts = {
+        yingyu_ziti: "Arial",
+        zhongwen_ziti: '50pt FangSong, KaiTi, SimSun, SimHei, "STHeiti Light", STHeiti, STKaiti, STSong, STFangsong, "AR PL UMing CN", "AR PL KaitiM GB" 黑体 华文黑体'
+      }
       var fc_canvas = document.getElementById('flashcard_canvas');
       var context = fc_canvas.getContext('2d');
       context.textAlign = 'center';
       //context.textBaseline = 'middle';
-      context.font = '50pt "AR PL KaitiM GB" "AR PL UMing" 黑体 SimHei 华文黑体 STHeiti';
+      context.font = opts.zhongwen_ziti;
 
       var CardControlsView = Backbone.View.extend({
         el: $('#card_controls'),
