@@ -57,6 +57,12 @@
 
       var FlashcardView = Backbone.View.extend({
         initialize: function() {
+          this.opts = this.options.opts;
+          this.canvas = this.options.canvas;
+          this.context = this.canvas.getContext('2d');
+          this.context.textAlign = 'center';
+          //this.context.textBaseline = 'middle';
+          this.context.font = this.opts.zhongwen_ziti;
           this.current_card = 0;
           this.show('zhongwen', this.current_card);
           _.bindAll(this, 'showCard', 'lastCard', 'nextCard', 'flip')
@@ -102,21 +108,13 @@
         show: function(attrib, id_num) {
           if (!id_num) { var id_num = this.current_card; }
           this.currentlyShowing = attrib;
-          context.clearRect(0,0,screen.width,screen.height);
+          this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
           var display_text = this.collection.at(id_num).get(attrib);
-          context.fillText(display_text, fc_canvas.width/2, fc_canvas.height/2);
+          this.context.fillText(display_text, this.canvas.width/2, this.canvas.height/2);
         }
       });
 
-      var opts = {
-        yingyu_ziti: "Arial",
-        zhongwen_ziti: '50pt FangSong, KaiTi, SimSun, SimHei, "STHeiti Light", STHeiti, STKaiti, STSong, STFangsong, "AR PL UMing CN", "AR PL KaitiM GB" 黑体 华文黑体'
-      }
-      var fc_canvas = document.getElementById('flashcard_canvas');
-      var context = fc_canvas.getContext('2d');
-      context.textAlign = 'center';
-      //context.textBaseline = 'middle';
-      context.font = opts.zhongwen_ziti;
+      var canvas = document.getElementById('flashcard_canvas');
 
       var CardControlsView = Backbone.View.extend({
         el: $('#card_controls'),
@@ -147,7 +145,11 @@
 
       var flashcard_view = new FlashcardView({
         collection: flashcards,
-        controls: cardControlsView
+        controls: cardControlsView,
+        canvas: canvas,
+        opts: {
+          yingyu_ziti: "Arial",
+          zhongwen_ziti: '50pt FangSong, KaiTi, SimSun, SimHei, "STHeiti Light", STHeiti, STKaiti, STSong, STFangsong, "AR PL UMing CN", "AR PL KaitiM GB" 黑体 华文黑体'}
       });
       
     </script>
