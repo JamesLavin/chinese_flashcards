@@ -75,6 +75,38 @@ var db_config = {
   }
 }
 
+/* WE DON'T STORE WHOLE BACKBONE MODELS IN INDEXEDDB, JUST ATTRIBUTES OBJECTS:
+  flashcards.at(1).attributes;
+*/
+
+/* TO ADD AN ITEM:
+db.open(db_config).done( function(server) {
+  var item = { zhongwen: '转过来', yingyu: 'to turn around', pinyin: 'zhuan3 guo4 lai2' };
+  // var item = { zhongwen: '法国', yingyu: 'France', pinyin: 'fa3 guo2' };
+  server.items.add(item).done( function () { });
+}).fail( function(error) {
+  console.error("An error occurred: ", error);
+});
+*/
+
+/* TO UPDATE AN ITEM:
+db.open(db_config).done( function(server) {
+  server.items.update({id:123, zhongwen: '浪漫', yingyu: 'romantic', pinyin: 'lang4 man4'});
+}).fail( function(error) {
+  console.error("An error occurred: ", error);
+});
+*/
+
+/* TO REMOVE ITEMS:
+db.open(db_config).done( function(server) {
+  for (i=3; i <= 155; i++) {
+    server.items.remove( i ).done(function(){ });
+  }
+}).fail( function(error) {
+  console.error("An error occurred: ", error);
+});
+*/
+
 db.open(db_config).done( function(server) {
   
   function bindAddItemToServer (serv) {
@@ -109,18 +141,15 @@ db.open(db_config).done( function(server) {
 
   var zhongwenAlreadyExistsOnServer = bindZhongwenAlreadyExistsOnServer(server);
 
-  console.log(flashcards.at(1).attributes);
-
   server.items.query().filter('yingyu','to turn around').execute().done(function (results) {
     console.log(JSON.stringify(results));
   });
 
+  // HOW TO ADD ONE BACKBONE MODEL TO INDEXEDDB:
   //addItemToServer(flashcards.at(1).attributes);
-  flashcards.each(addItemAttributesUnlessDuplicateToServer);
 
-  var item = { zhongwen: '转过来', yingyu: 'to turn around', pinyin: 'zhuan3 guo4 lai2' };
-  // var item = { zhongwen: '法国', yingyu: 'France', pinyin: 'fa3 guo2' };
-  // server.items.add(item).done( function () { });
+  // HOW TO ADD ALL BACKBONE MODELS NOT YET IN INDEXEDDB TO INDEXEDDB:
+  flashcards.each(addItemAttributesUnlessDuplicateToServer);
 
   if (!zhongwenAlreadyExistsOnServer(item.zhongwen)) {
     addItemToServer(item);
@@ -128,17 +157,13 @@ db.open(db_config).done( function(server) {
     console.log(item.zhongwen + " already exists in database server");
   }
 
-  // server.items.update({id:123, zhongwen: '浪漫', yingyu: 'romantic', pinyin: 'lang4 man4'});
-
-  //for (i=3; i <= 155; i++) {
-  //  server.items.remove( i ).done(function(){ });
-  //}
-
   //server.items.query('yingyu').only('yingyu', 'to turn around').execute().done(function (data) { alert(data.length); });
   //server.items.query('yingyu', 'to turn around').filter().execute().done(showAll);
   //server.items.query().filter().execute().done(function (results) {
   //  alert(JSON.stringify(results[results.length - 1]));
   //});
+
+  // HOW TO SHOW EVERYTHING STORED IN INDEXEDDB'S ITEMS:
   server.items.query().filter().execute().done(showAll);
 }).fail( function(error) {
     console.error("An error occurred: ", error);
