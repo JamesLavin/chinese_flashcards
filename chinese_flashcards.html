@@ -27,7 +27,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
     <script src="js/db.js"></script>
     <script>
-      if (!Modernizr.canvastext || !Modernizr.localstorage) { alert("Your browser does not seem to support HTML5 features we use to create flashcards. You'll need to upgrade before running this program."); };
+      if (!Modernizr.canvastext || !Modernizr.indexeddb) { alert("Your browser does not seem to support HTML5 features we use to create flashcards. You'll need to upgrade before running this program."); };
 
       var Flashcard = Backbone.Model.extend({
         initialize: function(){
@@ -162,12 +162,12 @@
     <script>
       var server;
 
-      var showLast = function (results) {
-        console.log(JSON.stringify(results[results.length - 1]));
+      var showLast = function (obj) {
+        console.log(JSON.stringify(obj[obj.length - 1]));
       };
 
-      var showAll = function (results) {
-        console.log(JSON.stringify(results));
+      var showAll = function (obj) {
+        console.log(JSON.stringify(obj));
       };
 
       var logIt = function (obj) {
@@ -176,19 +176,47 @@
 
       var addItem = function (server, item) {
         server.items.add(item);
-      }
-
-      var addItemAttributes = function (server, item) {
-        server.items.add(item.attributes);
-      }
+      };
 
       var addItemAndLog = function (server, item) {
         server.items.add(item).done( function () {
           console.log("added " + JSON.stringify(item));
         });
+      };
+
+      var addItemAttributes = function (server, item) {
+        server.items.add(item.attributes);
+      };
+
+      var addItemAttributesUnlessDuplicate = function (server, item) {
+        console.log(item.attributes.yingyu);
+        //server.items.query('zhongwen').only(item.attributes.zhongwen).filter(function(word) { return word.attributes.yingyu === item.attributes.yingyu}).execute().done(
+        //server.items.query('yingyu').only("'" + item.attributes.yingyu + "'").execute().done(
+        server.items.query('yingyu').all().distinct().execute().done(
+          function (items) {
+            if (items) {
+              console.log(words[0].attributes.zhongwen + ' already exists');
+            } else {
+              server.items.add(item.attributes);
+            }
+          }
+        );
+      };
+
+      var addItemAttributesAndLog = function (server, item) {
+        server.items.add(item.attributes).done( function () {
+          console.log("added " + JSON.stringify(item.attributes));
+        });
+      };
+
+      var zhongwenAlreadyExists = function (server, zhongwen) {
+        server.items.query('zhongwen').only(zhongwen).execute().done(function(items) {
+          console.log(zhongwen + ": " + !!items);
+          return !!items;
+        });
       }
 
-      indexedDB.deleteDatabase("database");
+      //window.indexedDB.deleteDatabase("database");
 
       var db_config = {
         name: 'database',
@@ -226,24 +254,42 @@
 
         var addItemAttributesToServer = bindAddItemAttributesToServer(server);
 
+        function bindAddItemAttributesUnlessDuplicateToServer (serv) {
+          return function (item) {
+            return addItemAttributesUnlessDuplicate(serv, item);
+          }
+        }
+
+        var addItemAttributesUnlessDuplicateToServer = bindAddItemAttributesUnlessDuplicateToServer(server);
+
+        function bindZhongwenAlreadyExistsOnServer (serv) {
+          return function (zhongwen) {
+            return zhongwenAlreadyExists(serv, zhongwen);
+          }
+        }
+
+        var zhongwenAlreadyExistsOnServer = bindZhongwenAlreadyExistsOnServer(server);
+
         console.log(flashcards.at(1).attributes);
         //addItemToServer(flashcards.at(1).attributes);
-        flashcards.each(addItemAttributesToServer);
+        flashcards.each(addItemAttributesUnlessDuplicateToServer);
 
-        //var item = {
-        //  zhongwen: '转过来',
-        //  yingyu: 'to turn around',
-        //  pinyin: 'zhuan3 guo4 lai2'
-        // }
-        var item = {
-          zhongwen: '法国',
-          yingyu: 'France',
-          pinyin: 'fa3 guo2'
-        };
-        //server.items.add(item).done( function () {
-        //  console.log("added " + item.zhongwen);
-        //});
-        addItemToServer(item);
+        var item = { zhongwen: '转过来', yingyu: 'to turn around', pinyin: 'zhuan3 guo4 lai2' };
+        // var item = { zhongwen: '法国', yingyu: 'France', pinyin: 'fa3 guo2' };
+        // server.items.add(item).done( function () { });
+
+        if (!zhongwenAlreadyExistsOnServer(item.attributes.zhongwen)) {
+          addItemAttributesToServer(item);
+        } else {
+          console.log(item.attributes.zhongwen + " already exists in database server");
+        }
+
+        // server.items.update({id:123, zhongwen: '浪漫', yingyu: 'romantic', pinyin: 'lang4 man4'});
+
+        //for (i=3; i <= 155; i++) {
+        //  server.items.remove( i ).done(function(){ });
+        //}
+
         //server.items.query('yingyu').only('yingyu', 'to turn around').execute().done(function (data) { alert(data.length); });
         //server.items.query('yingyu', 'to turn around').filter().execute().done(showAll);
         //server.items.query().filter().execute().done(function (results) {
