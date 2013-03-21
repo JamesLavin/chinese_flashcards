@@ -55,8 +55,6 @@ var zhongwenAlreadyExists = function (server, zhongwen) {
   });
 }
 
-//window.indexedDB.deleteDatabase("database");
-
 var db_config = {
   name: 'database',
   version: 2,
@@ -77,6 +75,10 @@ var db_config = {
 
 /* WE DON'T STORE WHOLE BACKBONE MODELS IN INDEXEDDB, JUST ATTRIBUTES OBJECTS:
   flashcards.at(1).attributes;
+*/
+
+/* TO DELETE DATABASE:
+  indexedDB.deleteDatabase("database");
 */
 
 /* TO ADD AN ITEM:
@@ -151,6 +153,8 @@ db.open(db_config).done( function(server) {
   // HOW TO ADD ALL BACKBONE MODELS NOT YET IN INDEXEDDB TO INDEXEDDB:
   flashcards.each(addItemAttributesUnlessDuplicateToServer);
 
+  // HOW TO CONDITIONALLY ADD AN ITEM:
+  var item = { zhongwen: '转过来', yingyu: 'to turn around', pinyin: 'zhuan3 guo4 lai2' };
   if (!zhongwenAlreadyExistsOnServer(item.zhongwen)) {
     addItemToServer(item);
   } else {
