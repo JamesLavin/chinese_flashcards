@@ -48,12 +48,18 @@ var addItemAttributesAndLog = function (server, item) {
   });
 };
 
-var zhongwenAlreadyExists = function (server, zhongwen) {
+var zhongwenAlreadyExists = function (server, zhongwen, callback) {
+  server.items.query().filter('zhongwen', zhongwen).execute().done(function(result)
+    callback(result);
+  );
+};
+
+/* var zhongwenAlreadyExists = function (server, zhongwen) {
   server.items.query().filter('zhongwen', zhongwen).execute().done(function(items) {
     console.log(zhongwen + ": " + !!items);
     return !!items;
   });
-}
+} */
 
 var db_config = {
   name: 'database',
@@ -109,6 +115,30 @@ db.open(db_config).done( function(server) {
 });
 */
 
+/* TO TEST WHETHER ZHONGWEN EXISTS */
+db.open(db_config).done( function(server) {
+
+  function bindZhongwenAlreadyExistsOnServer (serv) {
+    return function (zhongwen) {
+      return zhongwenAlreadyExists(serv, zhongwen, callback);
+    }
+  }
+
+  var zhongwenAlreadyExistsOnServer = bindZhongwenAlreadyExistsOnServer(server);
+ 
+  var item = { zhongwen: '转过来', yingyu: 'to turn around', pinyin: 'zhuan3 guo4 lai2' };
+  var logAndReturnTruthiness = function(items) {
+      console.log(!!items);
+      return !!items;
+    };
+  var zhongwen_exists = zhongwenAlreadyExistsOnServer(item.zhongwen, logAndReturnTruthiness);
+  console.log("zhongwen exists: " + zhongwen_exists);
+  return zhongwen_exists
+
+}).fail( function(error) {
+    console.error("An error occurred: ", error);
+});
+
 db.open(db_config).done( function(server) {
   
   function bindAddItemToServer (serv) {
@@ -135,14 +165,6 @@ db.open(db_config).done( function(server) {
 
   var addItemAttributesUnlessDuplicateToServer = bindAddItemAttributesUnlessDuplicateToServer(server);
 
-  function bindZhongwenAlreadyExistsOnServer (serv) {
-    return function (zhongwen) {
-      return zhongwenAlreadyExists(serv, zhongwen);
-    }
-  }
-
-  var zhongwenAlreadyExistsOnServer = bindZhongwenAlreadyExistsOnServer(server);
-
   server.items.query().filter('yingyu','to turn around').execute().done(function (results) {
     console.log(JSON.stringify(results));
   });
@@ -155,11 +177,21 @@ db.open(db_config).done( function(server) {
 
   // HOW TO CONDITIONALLY ADD AN ITEM:
   var item = { zhongwen: '转过来', yingyu: 'to turn around', pinyin: 'zhuan3 guo4 lai2' };
-  if (!zhongwenAlreadyExistsOnServer(item.zhongwen)) {
+  zhongwenAlreadyExistsOnServer(item.zhongwen) {
+    console.log("adding " + item.zhongwen + " to database server");
     addItemToServer(item);
   } else {
     console.log(item.zhongwen + " already exists in database server");
   }
+
+  // HOW TO CONDITIONALLY ADD AN ITEM:
+  /* var item = { zhongwen: '转过来', yingyu: 'to turn around', pinyin: 'zhuan3 guo4 lai2' };
+  if (!zhongwenAlreadyExistsOnServer(item.zhongwen)) {
+    console.log("adding " + item.zhongwen + " to database server");
+    addItemToServer(item);
+  } else {
+    console.log(item.zhongwen + " already exists in database server");
+  } */
 
   //server.items.query('yingyu').only('yingyu', 'to turn around').execute().done(function (data) { alert(data.length); });
   //server.items.query('yingyu', 'to turn around').filter().execute().done(showAll);
